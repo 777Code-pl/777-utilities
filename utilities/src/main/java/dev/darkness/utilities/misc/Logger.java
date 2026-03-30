@@ -37,15 +37,15 @@ public final class Logger {
     }
 
     public void warn(String message) {
-        console(pluginTag + "&8[&e&lBŁĄD&8] &f" + message + "&r");
+        console(pluginTag + "&8[&e&lBŁĄD&8] &6" + message + "&r");
     }
 
     public void error(String message) {
-        console(pluginTag + "&8[&4&lBŁĄD&8] &f" + message + "&r");
+        console(pluginTag + "&8[&4&lBŁĄD&8] &c" + message + "&r");
     }
 
     public void error(String message, Throwable throwable) {
-        console(pluginTag + "&8[&4&lBŁĄD&8] &f" + message + " &8(" + throwable.getClass().getSimpleName() + ": " + throwable.getMessage() + ")&r");
+        console(pluginTag + "&8[&4&lBŁĄD&8] &c" + message + " &8(" + throwable.getClass().getSimpleName() + ": " + throwable.getMessage() + ")&r");
     }
 
     public void debug(String message) {
