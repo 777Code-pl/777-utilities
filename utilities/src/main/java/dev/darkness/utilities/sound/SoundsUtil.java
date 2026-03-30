@@ -1,4 +1,4 @@
-package dev.klakierontop.libraries.utils;
+package dev.darkness.utilities.sound;
 
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
