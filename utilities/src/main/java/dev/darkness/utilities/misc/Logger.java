@@ -58,11 +58,11 @@ public final class Logger {
     }
 
     public void logStartup(String version, long loadTimeMillis) {
-        console("&8[&4&l" + plugin.getName() + "&8]" + " &6Uruchomiono plugin &e&lv" + version + "&6! &7(Wczytano w " + loadTimeMillis + "ms)&r");
+        console(pluginTag + " &6Uruchomiono plugin &e&lv" + version + "&6! &7(Wczytano w " + loadTimeMillis + "ms)&r");
     }
 
     public void logShutdown() {
-        console(pluginTag + " &cPlugin został wyłączony :C&r");
+        ("&8[&4&l" + plugin.getName() + "&8]" + " &cPlugin został wyłączony :C&r");
     }
 
     private void console(String message) {
