@@ -1,3 +1,4 @@
+[![](https://jitpack.io/v/777Code-pl/777-utilities.svg)](https://jitpack.io/#777Code-pl/777-utilities)
 # 777-Utilities
 
 Simple java utilities library
