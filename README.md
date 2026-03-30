@@ -24,12 +24,12 @@ repositories {
 For maven:
 ```xml
 <dependencies>
-	<dependency>
-	    <groupId>com.github.777Code-pl</groupId>
-	    <artifactId>777-utilities</artifactId>
-	    <version>v1.0.0</version>
-	</dependency>
-</dependencies>
+    <dependency>
+        <groupId>com.github.777Code-pl</groupId>
+        <artifactId>777-utilities</artifactId>
+        <version>v1.0.0</version>
+    </dependency>
+  </dependencies>
 ```
 
 For gradle:
