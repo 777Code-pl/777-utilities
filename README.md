@@ -1,6 +1,4 @@
-[![](https://jitpack.io/v/777Code-pl/777-utilities.svg)](https://jitpack.io/#777Code-pl/777-utilities)
-# 777-Utilities
-
+# 777-Utilities <img align="right" src="https://jitpack.io/v/777Code-pl/777-utilities.svg" alt="JitPack Badge" />
 Simple java utilities library
 
 ### Repository
@@ -26,19 +24,18 @@ repositories {
 For maven:
 ```xml
 <dependencies>
-    <dependency>
-        <groupId>com.github.darkness</groupId>
-        <artifactId>777-utilities</artifactId>
-        <version>v1.0.0</version>
-        <scope>compile</scope>
-    </dependency>
+	<dependency>
+	    <groupId>com.github.777Code-pl</groupId>
+	    <artifactId>777-utilities</artifactId>
+	    <version>v1.0.0</version>
+	</dependency>
 </dependencies>
 ```
 
 For gradle:
 ```groovy
 dependencies {
-    implementation 'com.github.77darkness:NazwaTwojegoRepozytorium:v1.0.0'
+    implementation 'com.github.777Code-pl:777-utilities:v1.0.0'
 }
 ```
 
