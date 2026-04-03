@@ -97,10 +97,10 @@ public final class UpdateChecker {
                     String latest = getLatestVersion();
 
                     player.sendMessage(TextUtil.toComponent(""));
-                    player.sendMessage(TextUtil.toComponent("&8» &cDostępna jest nowa wersja &c&l" + pluginName + "&c! &8(&4" + latest + "&8)"));
+                    player.sendMessage(TextUtil.toComponent("&8» &cDostępna jest nowa wersja &#FF0000&l" + pluginName + "&c! &8(&4" + latest + "&8)"));
                     player.sendMessage(TextUtil.toComponent(""));
-                    player.sendMessage(TextUtil.toComponent(" &8→ &fTwoja wersja: &c" + current));
-                    player.sendMessage(TextUtil.toComponent(" &8→ &fNajnowsza wersja: &a" + latest));
+                    player.sendMessage(TextUtil.toComponent(" &8→ &fTwoja wersja: &#FF0000" + current));
+                    player.sendMessage(TextUtil.toComponent(" &8→ &fNajnowsza wersja: &#00FF00" + latest));
                     player.sendMessage(TextUtil.toComponent(""));
                 }, delayTicks);
             }
