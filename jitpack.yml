@@ -2,4 +2,8 @@ jdk:
   - openjdk21
 
 before_install:
-  - cd utilities
+  - sdk install java 21.0.6-tem
+  - sdk use java 21.0.6-tem
+  - java -version
+  - sdk install maven
+  - mvn -version
