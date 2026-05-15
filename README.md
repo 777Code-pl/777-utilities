@@ -28,7 +28,7 @@ For maven:
     <dependency>
         <groupId>com.github.darkness</groupId>
         <artifactId>777-utilities</artifactId>
-        <version>v1.0.0</version>
+        <version>VERSION</version>
         <scope>compile</scope>
     </dependency>
 </dependencies>
@@ -37,7 +37,7 @@ For maven:
 For gradle:
 ```groovy
 dependencies {
-    implementation 'com.github.77darkness:NazwaTwojegoRepozytorium:v1.0.0'
+    implementation 'com.github.77darkness:777-utilities:VERSION'
 }
 ```
 
