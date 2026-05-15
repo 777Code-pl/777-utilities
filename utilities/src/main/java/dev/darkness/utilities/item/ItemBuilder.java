@@ -1,28 +1,44 @@
 package dev.darkness.utilities.item;
 
+import com.destroystokyo.paper.profile.PlayerProfile;
+import com.destroystokyo.paper.profile.ProfileProperty;
 import dev.darkness.utilities.text.TextUtil;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.Base64;
 import java.util.*;
 
 public class ItemBuilder {
 
     private final ItemStack item;
     private final ItemMeta meta;
+
+    private String rawName;
+    private List<String> rawLore;
+    private Component nameComponent;
+    private List<Component> loreComponents = new ArrayList<>();
     private Map<String, String> placeholders = Collections.emptyMap();
 
     public ItemBuilder(Material m) { this(m, 1); }
-    public ItemBuilder(Material m, int a) {
-        this.item = new ItemStack(m, a);
+
+    public ItemBuilder(Material m, int amount) {
+        this.item = new ItemStack(m, amount);
         this.meta = item.getItemMeta();
     }
+
     public ItemBuilder(ItemStack stack) {
         this.item = stack != null ? stack.clone() : new ItemStack(Material.AIR);
         this.meta = item.getItemMeta();
@@ -31,28 +47,49 @@ public class ItemBuilder {
     public static ItemBuilder of(Material m) { return new ItemBuilder(m); }
     public static ItemBuilder of(ItemStack s) { return new ItemBuilder(s); }
 
-    public ItemBuilder amount(int a) {
-        item.setAmount(a);
+    public static ItemBuilder skull(OfflinePlayer player) {
+        ItemBuilder builder = new ItemBuilder(Material.PLAYER_HEAD);
+        if (builder.meta instanceof SkullMeta skullMeta) {
+            skullMeta.setOwningPlayer(player);
+        }
+        return builder;
+    }
+
+    public static ItemBuilder skullFromTexture(String base64Texture) {
+        ItemBuilder builder = new ItemBuilder(Material.PLAYER_HEAD);
+        if (builder.meta instanceof SkullMeta skullMeta) {
+            PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes(base64Texture.getBytes()), null);
+            profile.setProperty(new ProfileProperty("textures", base64Texture));
+            skullMeta.setPlayerProfile(profile);
+        }
+        return builder;
+    }
+
+    public static ItemBuilder skullFromUrl(String textureUrl) {
+        String json = "{\"textures\":{\"SKIN\":{\"url\":\"" + textureUrl + "\"}}}";
+        return skullFromTexture(Base64.getEncoder().encodeToString(json.getBytes()));
+    }
+
+    public ItemBuilder amount(int amount) {
+        item.setAmount(amount);
         return this;
     }
 
     public ItemBuilder name(String name) {
-        if (meta != null && name != null) {
-            meta.displayName(TextUtil.toComponent(TextUtil.applyPlaceholders(name, placeholders)));
-        }
+        this.rawName = name;
+        this.nameComponent = null;
         return this;
     }
 
     public ItemBuilder name(Component component) {
-        if (meta != null && component != null) meta.displayName(component);
+        this.nameComponent = component;
+        this.rawName = null;
         return this;
     }
 
     public ItemBuilder lore(List<String> lines) {
-        if (meta != null) {
-            if (lines == null || lines.isEmpty()) meta.lore(null);
-            else meta.lore(TextUtil.applyPlaceholders(lines, placeholders).stream().map(TextUtil::toComponent).toList());
-        }
+        this.rawLore = lines != null ? new ArrayList<>(lines) : null;
+        this.loreComponents.clear();
         return this;
     }
 
@@ -61,64 +98,94 @@ public class ItemBuilder {
     }
 
     public ItemBuilder lore(Component... components) {
-        if (meta != null) meta.lore(Arrays.asList(components));
+        this.loreComponents = new ArrayList<>(Arrays.asList(components));
+        this.rawLore = null;
         return this;
     }
 
     public ItemBuilder addLoreLine(String line) {
-        if (meta == null || line == null) return this;
-        List<Component> lore = meta.lore() == null ? new ArrayList<>() : new ArrayList<>(meta.lore());
-        lore.add(TextUtil.toComponent(TextUtil.applyPlaceholders(line, placeholders)));
-        meta.lore(lore);
+        if (line == null) return this;
+        if (rawLore == null) rawLore = new ArrayList<>();
+        rawLore.add(line);
         return this;
     }
 
-    public ItemBuilder clearLore() {
-        if (meta != null) meta.lore(null);
+    public ItemBuilder addLoreLine(Component component) {
+        if (component == null) return this;
+        this.loreComponents.add(component);
         return this;
     }
 
-    public ItemBuilder enchant(Enchantment e, int l) {
-        if (meta != null) meta.addEnchant(e, l, true);
+    public ItemBuilder color(Color color) {
+        if (meta instanceof LeatherArmorMeta leatherMeta) {
+            leatherMeta.setColor(color);
+        } else if (meta instanceof PotionMeta potionMeta) {
+            potionMeta.setColor(color);
+        }
         return this;
     }
 
-    public ItemBuilder flag(ItemFlag... f) {
-        if (meta != null) meta.addItemFlags(f);
+    public ItemBuilder enchant(Enchantment enchantment, int level) {
+        if (meta != null) meta.addEnchant(enchantment, level, true);
+        return this;
+    }
+
+    public ItemBuilder flag(ItemFlag... flags) {
+        if (meta != null) meta.addItemFlags(flags);
         return this;
     }
 
     public ItemBuilder glow() {
-        enchant(Enchantment.UNBREAKING, 1);
-        flag(ItemFlag.HIDE_ENCHANTS);
+        if (meta != null) {
+            meta.setEnchantmentGlintOverride(true);
+        }
         return this;
     }
 
-    public ItemBuilder unbreakable(boolean u) {
-        if (meta != null) meta.setUnbreakable(u);
+    public ItemBuilder unbreakable(boolean value) {
+        if (meta != null) meta.setUnbreakable(value);
         return this;
     }
 
-    public ItemBuilder customModelData(int d) {
-        if (meta != null) meta.setCustomModelData(d);
+    public ItemBuilder customModelData(Integer data) {
+        if (meta != null) meta.setCustomModelData(data);
         return this;
     }
 
-    public <T, Z> ItemBuilder tag(NamespacedKey k, PersistentDataType<T, Z> t, Z v) {
-        if (meta != null) meta.getPersistentDataContainer().set(k, t, v);
+    public <T, Z> ItemBuilder tag(NamespacedKey key, PersistentDataType<T, Z> type, Z value) {
+        if (meta != null) meta.getPersistentDataContainer().set(key, type, value);
         return this;
     }
 
-    public ItemBuilder tagString(NamespacedKey k, String v) { return tag(k, PersistentDataType.STRING, v); }
-    public ItemBuilder tagInt(NamespacedKey k, int v) { return tag(k, PersistentDataType.INTEGER, v); }
-
-    public ItemBuilder placeholders(Map<String, String> p) {
-        this.placeholders = p;
+    public ItemBuilder placeholders(Map<String, String> placeholders) {
+        this.placeholders = placeholders;
         return this;
     }
 
     public ItemStack build() {
-        if (meta != null) item.setItemMeta(meta);
+        if (meta == null) return item;
+
+        if (nameComponent != null) {
+            meta.displayName(nameComponent);
+        } else if (rawName != null) {
+            meta.displayName(TextUtil.toComponent(TextUtil.applyPlaceholders(rawName, placeholders)));
+        }
+
+        List<Component> finalLore = new ArrayList<>();
+        if (rawLore != null) {
+            finalLore.addAll(TextUtil.applyPlaceholders(rawLore, placeholders).stream()
+                    .map(TextUtil::toComponent)
+                    .toList());
+        }
+        if (!loreComponents.isEmpty()) {
+            finalLore.addAll(loreComponents);
+        }
+
+        if (!finalLore.isEmpty()) {
+            meta.lore(finalLore);
+        }
+
+        item.setItemMeta(meta);
         return item;
     }
 }

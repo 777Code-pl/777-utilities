@@ -4,10 +4,6 @@ import java.util.concurrent.TimeUnit;
 
 public final class TicksUtil {
 
-    public static final int TICK_SECOND = 20;
-    public static final int TICK_MINUTE = 1200;
-    public static final int TICK_HOUR = 72000;
-
     private TicksUtil() {}
 
     public static long toTicks(long duration, TimeUnit unit) {

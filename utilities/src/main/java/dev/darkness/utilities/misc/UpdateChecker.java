@@ -97,11 +97,13 @@ public final class UpdateChecker {
                     String latest = getLatestVersion();
 
                     player.sendMessage(TextUtil.toComponent(""));
-                    player.sendMessage(TextUtil.toComponent("&8» &cDostępna jest nowa wersja &c&l" + pluginName + "&c! &8(&4" + latest + "&8)"));
+                    player.sendMessage(TextUtil.toComponent("&8» &cᴅᴏꜱᴛᴇᴘɴᴀ ᴊᴇꜱᴛ ɴᴏᴡᴀ ᴡᴇʀꜱᴊᴀ &#FF0000" + pluginName + "&c! &8(&4" + latest + "&8)"));
                     player.sendMessage(TextUtil.toComponent(""));
-                    player.sendMessage(TextUtil.toComponent(" &8→ &fTwoja wersja: &c" + current));
-                    player.sendMessage(TextUtil.toComponent(" &8→ &fNajnowsza wersja: &a" + latest));
+                    player.sendMessage(TextUtil.toComponent(" &8→ &fᴛᴡᴏᴊᴀ ᴡᴇʀꜱᴊᴀ: &#FF0000" + current));
+                    player.sendMessage(TextUtil.toComponent(" &8→ &fɴᴀᴊɴᴏᴡꜱᴢᴀ ᴡᴇʀꜱᴊᴀ: &#00FF00" + latest));
                     player.sendMessage(TextUtil.toComponent(""));
+                    player.sendMessage(TextUtil.toComponent("&8» &fᴘᴏʙɪᴇʀᴢ ɴᴀᴊɴᴏᴡꜱᴢᴀ ᴡᴇʀꜱᴊᴇ ɴᴀ"));
+                    player.sendMessage(TextUtil.toComponent("&8» &#00C1FFhttps://discord.gg/777code"));
                 }, delayTicks);
             }
         }, plugin);

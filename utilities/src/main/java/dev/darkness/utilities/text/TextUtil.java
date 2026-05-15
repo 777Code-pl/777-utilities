@@ -1,14 +1,13 @@
 package dev.darkness.utilities.text;
 
+import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.boss.BossBar;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -19,16 +18,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class TextUtil {
 
-    private static final Map<UUID, BossBar> BOSS_BARS = new ConcurrentHashMap<>();
+    private static final Map<UUID, Map<String, BossBar>> BOSS_BARS = new ConcurrentHashMap<>();
     private static final Map<UUID, Map<String, ActionBarSlot>> ACTION_BAR_SLOTS = new ConcurrentHashMap<>();
-    private static final String ACTION_BAR_SEPARATOR = " &8| ";
-
-    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.builder()
-            .character('&')
-            .hexColors()
-            .build();
-
-    private static final LegacyComponentSerializer LEGACY_SECTION = LegacyComponentSerializer.legacySection();
 
     private TextUtil() {}
 
@@ -49,24 +40,30 @@ public final class TextUtil {
         if (player == null || component == null) return;
         switch (type) {
             case CHAT -> player.sendMessage(component);
-            case ACTIONBAR -> player.sendActionBar(component);
+            case ACTIONBAR -> setActionBarSlot(player, "default", component, -1);
             case TITLE -> sendTitle(player, component, Component.empty());
             case SUBTITLE -> sendTitle(player, Component.empty(), component);
-            case TITLE_SUBTITLE -> sendTitle(player, component, Component.empty());
-            case BOSSBAR -> showBossBar(null, player, component);
+            case BOSSBAR -> showBossBar(player, "default", component, BossBar.Color.PURPLE, BossBar.Overlay.PROGRESS, 1.0f);
         }
-    }
-
-    public static void sendTitleSubtitle(Player player, String title, String subtitle) {
-        if (player == null) return;
-        Component t = title != null ? toComponent(title) : Component.empty();
-        Component s = subtitle != null ? toComponent(subtitle) : Component.empty();
-        sendTitle(player, t, s);
     }
 
     public static void send(CommandSender sender, String text) {
         if (sender instanceof Player p) send(p, text);
         else sender.sendMessage(toComponent(text));
+    }
+
+    public static void sendTitleSubtitle(Player player, String title, String subtitle) {
+        if (player == null) return;
+        sendTitle(player,
+                title != null ? toComponent(title) : Component.empty(),
+                subtitle != null ? toComponent(subtitle) : Component.empty());
+    }
+
+    public static void sendTitleSubtitle(Player player, Component title, Component subtitle) {
+        if (player == null) return;
+        sendTitle(player,
+                title != null ? title : Component.empty(),
+                subtitle != null ? subtitle : Component.empty());
     }
 
     public static void sendClickableMsg(Player player, String text, String command) {
@@ -75,35 +72,50 @@ public final class TextUtil {
     }
 
     private static void sendTitle(Player player, Component title, Component subtitle) {
-        player.showTitle(Title.title(title, subtitle, Title.Times.times(Duration.ofMillis(500), Duration.ofMillis(3500), Duration.ofMillis(1000))));
+        player.showTitle(Title.title(title, subtitle,
+                Title.Times.times(Duration.ofMillis(500), Duration.ofMillis(3500), Duration.ofMillis(1000))));
     }
 
-    public static void removeBossBar(Player player) {
-        BossBar bar = BOSS_BARS.remove(player.getUniqueId());
-        if (bar != null) bar.removeAll();
+    public static void showBossBar(Player player, String key, Component content, BossBar.Color color, BossBar.Overlay overlay, float progress) {
+        if (player == null) return;
+        Map<String, BossBar> playerBars = BOSS_BARS.computeIfAbsent(player.getUniqueId(), k -> new HashMap<>());
+
+        float clampedProgress = Math.max(0.0f, Math.min(1.0f, progress));
+        BossBar bar = playerBars.get(key);
+
+        if (bar == null) {
+            bar = BossBar.bossBar(content, clampedProgress, color, overlay);
+            player.showBossBar(bar);
+            playerBars.put(key, bar);
+        } else {
+            bar.name(content);
+            bar.progress(clampedProgress);
+            bar.color(color);
+            bar.overlay(overlay);
+        }
     }
 
-    public static void showBossBar(Plugin plugin, Player player, Component msg) {
-        showBossBar(plugin, player, msg, BarColor.GREEN, BarStyle.SOLID, 1.0, 100L);
+    public static void showBossBar(Plugin plugin, Player player, String key, Component msg, BossBar.Color color, BossBar.Overlay overlay, float progress, long ticks) {
+        showBossBar(player, key, msg, color, overlay, progress);
+        if (plugin != null && ticks > 0) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> removeBossBar(player, key), ticks);
+        }
     }
 
-    public static void showBossBar(Plugin plugin, Player player, Component msg, BarColor color, BarStyle style, double progress, long ticks) {
-        UUID uuid = player.getUniqueId();
-        BossBar old = BOSS_BARS.remove(uuid);
-        if (old != null) old.removeAll();
+    public static void removeBossBar(Player player, String key) {
+        Map<String, BossBar> playerBars = BOSS_BARS.get(player.getUniqueId());
+        if (playerBars == null) return;
 
-        BossBar bar = Bukkit.createBossBar(LEGACY_SECTION.serialize(msg), color, style);
-        bar.setProgress(Math.max(0.0, Math.min(1.0, progress)));
-        bar.addPlayer(player);
-        BOSS_BARS.put(uuid, bar);
+        BossBar bar = playerBars.remove(key);
+        if (bar != null) player.hideBossBar(bar);
 
-        if (plugin != null) {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                if (BOSS_BARS.get(uuid) == bar) {
-                    BOSS_BARS.remove(uuid);
-                    bar.removeAll();
-                }
-            }, ticks);
+        if (playerBars.isEmpty()) BOSS_BARS.remove(player.getUniqueId());
+    }
+
+    public static void removeAllBossBars(Player player) {
+        Map<String, BossBar> playerBars = BOSS_BARS.remove(player.getUniqueId());
+        if (playerBars != null) {
+            playerBars.values().forEach(player::hideBossBar);
         }
     }
 
@@ -113,22 +125,30 @@ public final class TextUtil {
         }
     }
 
-    public static void setActionBarSlot(Player player, String slotName, String text, long duration) {
-        if (player == null || !player.isOnline() || slotName == null) return;
-        long exp = duration < 0 ? -1L : System.currentTimeMillis() + duration;
+    public static void setActionBarSlot(Player player, String slotName, String text, long durationMs) {
+        setActionBarSlot(player, slotName, toComponent(text), durationMs);
+    }
+
+    public static void setActionBarSlot(Player player, String slotName, Component component, long durationMs) {
+        if (player == null || !player.isOnline() || slotName == null || component == null) return;
+        long exp = durationMs < 0 ? -1L : System.currentTimeMillis() + durationMs;
         ACTION_BAR_SLOTS.computeIfAbsent(player.getUniqueId(), k -> new LinkedHashMap<>())
-                .put(slotName, new ActionBarSlot(toComponent(text), exp));
+                .put(slotName, new ActionBarSlot(component, exp));
         flushActionBar(player);
     }
 
-    public static void clearActionBarSlot(Player player, String name) {
+    public static void clearActionBarSlot(Player player, String slotName) {
         if (player == null) return;
         Map<String, ActionBarSlot> slots = ACTION_BAR_SLOTS.get(player.getUniqueId());
-        if (slots != null) {
-            slots.remove(name);
-            if (slots.isEmpty()) ACTION_BAR_SLOTS.remove(player.getUniqueId());
-            else flushActionBar(player);
-        }
+        if (slots == null) return;
+        slots.remove(slotName);
+        if (slots.isEmpty()) ACTION_BAR_SLOTS.remove(player.getUniqueId());
+        else flushActionBar(player);
+    }
+
+    public static void clearAllActionBarSlots(Player player) {
+        if (player == null) return;
+        ACTION_BAR_SLOTS.remove(player.getUniqueId());
     }
 
     private static void flushActionBar(Player player) {
@@ -139,13 +159,14 @@ public final class TextUtil {
         slots.entrySet().removeIf(e -> e.getValue().isExpired());
         if (slots.isEmpty()) {
             ACTION_BAR_SLOTS.remove(player.getUniqueId());
+            player.sendActionBar(Component.empty());
             return;
         }
 
-        List<Component> parts = new ArrayList<>();
-        for (ActionBarSlot s : slots.values()) parts.add(s.component());
-
-        player.sendActionBar(joinComponents(parts, toComponent(ACTION_BAR_SEPARATOR)));
+        player.sendActionBar(slots.values().stream()
+                .map(ActionBarSlot::component)
+                .reduce((a, b) -> a.append(toComponent(" &8| ")).append(b))
+                .orElse(Component.empty()));
     }
 
     public static void tickActionBars() {
@@ -154,20 +175,24 @@ public final class TextUtil {
 
     public static Component toComponent(String text) {
         if (text == null || text.isEmpty()) return Component.empty();
-        return LEGACY.deserialize(text).decoration(TextDecoration.ITALIC, false);
+        return LegacyComponentSerializer.builder().character('&').hexColors().build()
+                .deserialize(text).decoration(TextDecoration.ITALIC, false);
     }
 
-    private static Component joinComponents(List<Component> comps, Component sep) {
-        if (comps.isEmpty()) return Component.empty();
-        Component res = comps.getFirst();
-        for (int i = 1; i < comps.size(); i++) res = res.append(sep).append(comps.get(i));
-        return res;
+    public static Component fromMiniMessage(String text) {
+        if (text == null || text.isEmpty()) return Component.empty();
+        return MiniMessage.miniMessage().deserialize(text).decoration(TextDecoration.ITALIC, false);
+    }
+
+    public static String toMiniMessage(Component component) {
+        return component == null ? "" : MiniMessage.miniMessage().serialize(component);
     }
 
     public static String applyPlaceholders(String text, Map<String, String> placeholders) {
         if (text == null || placeholders == null) return text;
         for (Map.Entry<String, String> e : placeholders.entrySet()) {
-            text = text.replace("{" + e.getKey() + "}", e.getValue()).replace("%" + e.getKey() + "%", e.getValue());
+            text = text.replace("{" + e.getKey() + "}", e.getValue())
+                    .replace("%" + e.getKey() + "%", e.getValue());
         }
         return text;
     }
@@ -177,5 +202,5 @@ public final class TextUtil {
         return lines.stream().map(l -> applyPlaceholders(l, placeholders)).toList();
     }
 
-    public enum MessageType { CHAT, ACTIONBAR, TITLE, SUBTITLE, TITLE_SUBTITLE, BOSSBAR }
+    public enum MessageType { CHAT, ACTIONBAR, TITLE, SUBTITLE, BOSSBAR }
 }

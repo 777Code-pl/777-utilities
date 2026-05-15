@@ -9,29 +9,33 @@ import java.time.temporal.ChronoUnit;
 
 public final class DateUtil {
 
-    public static final ZoneId ZONE = ZoneId.of("Europe/Warsaw");
-    private static final DateTimeFormatter DF = DateTimeFormatter.ofPattern("dd.MM.yyyy").withZone(ZONE);
-    private static final DateTimeFormatter DTF = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss").withZone(ZONE);
-    private static final DateTimeFormatter TF = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZONE);
-
     private DateUtil() {}
 
-    public static ZonedDateTime now() { return ZonedDateTime.now(ZONE); }
-    public static LocalDate today() { return LocalDate.now(ZONE); }
+    public static ZonedDateTime now() { return ZonedDateTime.now(ZoneId.of("Europe/Warsaw")); }
+    public static LocalDate today() { return LocalDate.now(ZoneId.of("Europe/Warsaw")); }
     public static long currentEpoch() { return System.currentTimeMillis(); }
 
-    public static String formatDate(ZonedDateTime dt) { return dt == null ? "" : dt.format(DF); }
-    public static String formatDateTime(ZonedDateTime dt) { return dt == null ? "" : dt.format(DTF); }
-    public static String formatTime(ZonedDateTime dt) { return dt == null ? "" : dt.format(TF); }
+    public static String formatDate(ZonedDateTime dt) {
+        return dt == null ? "" : dt.format(DateTimeFormatter.ofPattern("dd.MM.yyyy").withZone(ZoneId.of("Europe/Warsaw")));
+    }
+
+    public static String formatDateTime(ZonedDateTime dt) {
+        return dt == null ? "" : dt.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss").withZone(ZoneId.of("Europe/Warsaw")));
+    }
+
+    public static String formatTime(ZonedDateTime dt) {
+        return dt == null ? "" : dt.format(DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.of("Europe/Warsaw")));
+    }
 
     public static String format(long epoch, boolean includeTime) {
-        ZonedDateTime dt = fromEpoch(epoch);
-        return includeTime ? formatDateTime(dt) : formatDate(dt);
+        return includeTime ? formatDateTime(fromEpoch(epoch)) : formatDate(fromEpoch(epoch));
     }
 
     public static ZonedDateTime parse(String val) {
         try {
-            return java.time.LocalDateTime.parse(val, DTF).atZone(ZONE);
+            return java.time.LocalDateTime.parse(val,
+                    DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss").withZone(ZoneId.of("Europe/Warsaw"))
+            ).atZone(ZoneId.of("Europe/Warsaw"));
         } catch (Exception e) {
             return null;
         }
@@ -50,5 +54,5 @@ public final class DateUtil {
     public static boolean isPast(long epoch) { return epoch < System.currentTimeMillis(); }
 
     public static long toEpoch(ZonedDateTime dt) { return dt == null ? 0 : dt.toInstant().toEpochMilli(); }
-    public static ZonedDateTime fromEpoch(long epoch) { return Instant.ofEpochMilli(epoch).atZone(ZONE); }
+    public static ZonedDateTime fromEpoch(long epoch) { return Instant.ofEpochMilli(epoch).atZone(ZoneId.of("Europe/Warsaw")); }
 }
