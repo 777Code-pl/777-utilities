@@ -7,7 +7,6 @@ import org.bukkit.plugin.Plugin;
 public final class Logger {
 
     private final Plugin plugin;
-    private final String pluginTag;
     private boolean debugEnabled = false;
 
     public Logger(Plugin plugin) {
