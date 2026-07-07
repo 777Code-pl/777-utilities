@@ -2,8 +2,9 @@ package dev.darkness.utilities.item;
 
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
-import dev.darkness.utilities.text.TextUtil;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -23,16 +24,22 @@ import java.util.*;
 
 public class ItemBuilder {
 
+    private static final MiniMessage MM = MiniMessage.miniMessage();
+
     private final ItemStack item;
     private final ItemMeta meta;
 
     private String rawName;
     private List<String> rawLore;
+
     private Component nameComponent;
     private List<Component> loreComponents = new ArrayList<>();
+
     private Map<String, String> placeholders = Collections.emptyMap();
 
-    public ItemBuilder(Material m) { this(m, 1); }
+    public ItemBuilder(Material m) {
+        this(m, 1);
+    }
 
     public ItemBuilder(Material m, int amount) {
         this.item = new ItemStack(m, amount);
@@ -162,21 +169,30 @@ public class ItemBuilder {
         return this;
     }
 
+    private String applyPlaceholders(String text) {
+        if (text == null || placeholders.isEmpty()) return text;
+        for (Map.Entry<String, String> entry : placeholders.entrySet()) {
+            text = text.replace(entry.getKey(), entry.getValue());
+        }
+        return text;
+    }
+
     public ItemStack build() {
         if (meta == null) return item;
 
         if (nameComponent != null) {
             meta.displayName(nameComponent);
         } else if (rawName != null) {
-            meta.displayName(TextUtil.toComponent(TextUtil.applyPlaceholders(rawName, placeholders)));
+            meta.displayName(MM.deserialize(applyPlaceholders(rawName)).decoration(TextDecoration.ITALIC, false));
         }
 
         List<Component> finalLore = new ArrayList<>();
         if (rawLore != null) {
-            finalLore.addAll(TextUtil.applyPlaceholders(rawLore, placeholders).stream()
-                    .map(TextUtil::toComponent)
-                    .toList());
+            for (String line : rawLore) {
+                finalLore.add(MM.deserialize(applyPlaceholders(line)).decoration(TextDecoration.ITALIC, false));
+            }
         }
+
         if (!loreComponents.isEmpty()) {
             finalLore.addAll(loreComponents);
         }
