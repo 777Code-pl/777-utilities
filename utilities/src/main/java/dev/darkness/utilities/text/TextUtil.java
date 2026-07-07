@@ -98,7 +98,7 @@ public final class TextUtil {
     public static void showBossBar(Plugin plugin, Player player, String key, Component msg, BossBar.Color color, BossBar.Overlay overlay, float progress, long ticks) {
         showBossBar(player, key, msg, color, overlay, progress);
         if (plugin != null && ticks > 0) {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> removeBossBar(player, key), ticks);
+            Bukkit.getServer().getGlobalRegionScheduler().runDelayed(plugin, st -> removeBossBar(player, key), ticks);
         }
     }
 
@@ -165,7 +165,7 @@ public final class TextUtil {
 
         player.sendActionBar(slots.values().stream()
                 .map(ActionBarSlot::component)
-                .reduce((a, b) -> a.append(toComponent(" &8| ")).append(b))
+                .reduce((a, b) -> a.append(toComponent(" <dark_gray>| ")).append(b))
                 .orElse(Component.empty()));
     }
 
@@ -175,13 +175,17 @@ public final class TextUtil {
 
     public static Component toComponent(String text) {
         if (text == null || text.isEmpty()) return Component.empty();
+        return MiniMessage.miniMessage().deserialize(text).decoration(TextDecoration.ITALIC, false);
+    }
+
+    public static Component fromLegacy(String text) {
+        if (text == null || text.isEmpty()) return Component.empty();
         return LegacyComponentSerializer.builder().character('&').hexColors().build()
                 .deserialize(text).decoration(TextDecoration.ITALIC, false);
     }
 
     public static Component fromMiniMessage(String text) {
-        if (text == null || text.isEmpty()) return Component.empty();
-        return MiniMessage.miniMessage().deserialize(text).decoration(TextDecoration.ITALIC, false);
+        return toComponent(text);
     }
 
     public static String toMiniMessage(Component component) {
