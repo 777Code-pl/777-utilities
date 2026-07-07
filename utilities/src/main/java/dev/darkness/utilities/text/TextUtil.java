@@ -98,7 +98,7 @@ public final class TextUtil {
     public static void showBossBar(Plugin plugin, Player player, String key, Component msg, BossBar.Color color, BossBar.Overlay overlay, float progress, long ticks) {
         showBossBar(player, key, msg, color, overlay, progress);
         if (plugin != null && ticks > 0) {
-            Bukkit.getServer().getGlobalRegionScheduler().runDelayed(plugin, st -> removeBossBar(player, key), ticks);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> removeBossBar(player, key), ticks);
         }
     }
 
