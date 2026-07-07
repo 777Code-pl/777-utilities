@@ -1,6 +1,7 @@
 package dev.darkness.utilities.misc;
 
-import dev.darkness.utilities.text.TextUtil;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
@@ -26,43 +27,45 @@ public final class Logger {
     }
 
     public void info(String message) {
-        console("&8[&e&l" + plugin.getName() + "&8]" + " &f" + message + "&r");
+        console("<dark_gray>[<yellow><bold>" + plugin.getName() + "</bold></yellow>]</dark_gray> <white>" + message);
     }
 
     public void success(String message) {
-        console("&8[&e&l" + plugin.getName() + "&8]" + " &a" + message + "&r");
+        console("<dark_gray>[<yellow><bold>" + plugin.getName() + "</bold></yellow>]</dark_gray> <green>" + message);
     }
 
     public void warn(String message) {
-        console("&8[&e&l" + plugin.getName() + "&8]" + "&8[&e&lBŁĄD&8] &f" + message + "&r");
+        console("<dark_gray>[<yellow><bold>" + plugin.getName() + "</bold></yellow>][<yellow><bold>BŁĄD</bold></yellow>]</dark_gray> <white>" + message);
     }
 
     public void error(String message) {
-        console("&8[&4" + plugin.getName() + "&8]" + "&8[&4&lBŁĄD&8] &f" + message + "&r");
+        console("<dark_gray>[<dark_red>" + plugin.getName() + "</dark_red>][<dark_red><bold>BŁĄD</bold></dark_red>]</dark_gray> <white>" + message);
     }
 
     public void error(String message, Throwable throwable) {
-        console("&8[&4" + plugin.getName() + "&8]" + "&8[&4&lBŁĄD&8] &f" + message + " &8(" + throwable.getClass().getSimpleName() + ": " + throwable.getMessage() + ")&r");
+        console("<dark_gray>[<dark_red>" + plugin.getName() + "</dark_red>][<dark_red><bold>BŁĄD</bold></dark_red>]</dark_gray> <white>" + message + " <dark_gray>(" + throwable.getClass().getSimpleName() + ": " + throwable.getMessage() + ")</dark_gray>");
     }
 
     public void debug(String message) {
         if (!debugEnabled) return;
-        console("&8[&e&l" + plugin.getName() + "&8]" + " &7[DEBUG] " + message + "&r");
+        console("<dark_gray>[<yellow><bold>" + plugin.getName() + "</bold></yellow>]</dark_gray> <gray>[DEBUG] " + message);
     }
 
     public void logStartup(long loadTimeMillis) {
-        console("&8[&e&l" + plugin.getName() + "&8]" + " &6Uruchomiono plugin! &7(Wczytano w " + loadTimeMillis + "ms)&r");
+        console("<dark_gray>[<yellow><bold>" + plugin.getName() + "</bold></yellow>]</dark_gray> <gold>Uruchomiono plugin! <gray>(Wczytano w " + loadTimeMillis + "ms)</gray>");
     }
 
     public void logStartup(String version, long loadTimeMillis) {
-        console("&8[&e&l" + plugin.getName() + "&8]" + " &6Uruchomiono plugin &e&lv" + version + "&6! &7(Wczytano w " + loadTimeMillis + "ms)&r");
+        console("<dark_gray>[<yellow><bold>" + plugin.getName() + "</bold></yellow>]</dark_gray> <gold>Uruchomiono plugin <yellow><bold>v" + version + "</bold></yellow><gold>! <gray>(Wczytano w " + loadTimeMillis + "ms)</gray>");
     }
 
     public void logShutdown() {
-        console("&8[&4" + plugin.getName() + "&8]" + " &cPlugin został wyłączony :C&r");
+        console("<dark_gray>[<dark_red>" + plugin.getName() + "</dark_red>]</dark_gray> <red>Plugin został wyłączony <dark_red>:C");
     }
 
     private void console(String message) {
-        Bukkit.getConsoleSender().sendMessage(TextUtil.toComponent(message));
+        Bukkit.getConsoleSender().sendMessage(
+                MiniMessage.miniMessage().deserialize(message).decoration(TextDecoration.ITALIC, false)
+        );
     }
 }
